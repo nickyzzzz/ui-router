@@ -55,6 +55,7 @@ function $StateRefDirective($state, $timeout) {
     require: '?^uiSrefActive',
     link: function(scope, element, attrs, uiSrefActive) {
       var ref = parseStateRef(attrs.uiSref);
+	  var reload = attrs.uiSrefReload == "true";
       var params = null, url = null, base = stateContext(element) || $state.$current;
       var isForm = element[0].nodeName === "FORM";
       var attr = isForm ? "action" : "href", nav = true;
@@ -90,7 +91,7 @@ function $StateRefDirective($state, $timeout) {
         if ((button === 0 || button == 1) && !e.ctrlKey && !e.metaKey && !e.shiftKey && !element.attr('target')) {
           // HACK: This is to allow ng-clicks to be processed before the transition is initiated:
           $timeout(function() {
-            $state.go(ref.state, params, { relative: base });
+            $state.go(ref.state, params, { relative: base, reload : reload });
           });
           e.preventDefault();
         }
