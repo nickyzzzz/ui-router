@@ -70,6 +70,8 @@ function $ViewDirective(   $state,   $compile,   $controller,   $injector,   $ui
 
   var directive = {
     restrict: 'ECA',
+    priority: 9000,
+    terminal: true,
     compile: function (element, attrs) {
       var initial   = element.html(),
           isDefault = true,
@@ -78,14 +80,16 @@ function $ViewDirective(   $state,   $compile,   $controller,   $injector,   $ui
 
       element.prepend(anchor);
 
-      return function ($scope) {
-        var inherited = parentEl.inheritedData('$uiView');
+      return function ($scope, $element) {
+	    var $parent = $element.parent();
+        var inherited = $parent.inheritedData('$uiView');
+		$element.prepend(anchor);
 
         var currentScope, currentEl, viewLocals,
             name      = attrs[directive.name] || attrs.name || '',
             onloadExp = attrs.onload || '',
             autoscrollExp = attrs.autoscroll,
-            renderer  = getRenderer(element, attrs, $scope);
+            renderer  = getRenderer($element, attrs, $scope);
 
         if (name.indexOf('@') < 0) name = name + '@' + (inherited ? inherited.state.name : '');
         var view = { name: name, state: null };
@@ -121,16 +125,13 @@ function $ViewDirective(   $state,   $compile,   $controller,   $injector,   $ui
         function updateView(shouldAnimate) {
           var locals = $state.$current && $state.$current.locals[name];
 
-          if (isDefault) {
-            isDefault = false;
-            element.replaceWith(anchor);
-          }
+          $element.replaceWith(anchor);
 
           if (!locals) {
             cleanupLastView();
             currentEl = element.clone();
             currentEl.html(initial);
-            renderer(shouldAnimate).enter(currentEl, parentEl, anchor);
+            renderer(shouldAnimate).enter(currentEl, $parent, anchor);
 
             currentScope = $scope.$new();
             $compile(currentEl.contents())(currentScope);
@@ -143,7 +144,7 @@ function $ViewDirective(   $state,   $compile,   $controller,   $injector,   $ui
 
           currentEl = element.clone();
           currentEl.html(locals.$template ? locals.$template : initial);
-          renderer(true).enter(currentEl, parentEl, anchor);
+          renderer(true).enter(currentEl, $parent, anchor);
 
           currentEl.data('$uiView', view);
 
